@@ -1,0 +1,44 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "object-literal-sort-keys": false,
+    "no-console": false,
+    "max-line-length": [
+      true,
+      {
+        "limit": 400,
+        "ignore-pattern": "^import [^,]+ from |^export | implements"
+      }
+    ],
+    "space-within-parens": [false, 1],
+    "whitespace": {
+      "options": [
+        "check-branch",
+        "check-decl",
+        "check-module",
+        "check-operator",
+        "check-separator",
+        "check-type",
+        "check-typecast",
+        "check-type-operator",
+        "check-rest-spread",
+        "check-preblock"
+      ]
+    },
+    "radix": false,
+    "variable-name": {
+      "options": [
+        "check-format",
+        "allow-leading-underscore",
+        "allow-pascal-case",
+        "allow-snake-case",
+        "allow-trailing-underscore"
+      ]
+    },
+    "no-empty-interface": false
+  },
+  "rulesDirectory": [],
+  "quotemark": [true, "double"]
+}

@@ -1,0 +1,24 @@
+{
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist", "**/*.spec.ts"],
+    "compilerOptions": {
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "target": "es2015",
+      "module": "commonjs",
+      "forceConsistentCasingInFileNames": true,
+      "lib": ["dom", "es6", "dom.iterable", "scripthost", "es2016.array.include"],
+      "sourceMap": false,
+      "outDir": "./dist",
+      "removeComments": true,
+      "strict": true,
+      "strictNullChecks": true,
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "strictPropertyInitialization": false,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "types": ["jest"]
+    }
+  }
+  
