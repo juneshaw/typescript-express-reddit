@@ -46,7 +46,7 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
   }
 
   private queryInsertUser = (user: IRawUser) => {
-    const { email, newsletter_enabled, newsletter_time, subreddits } = user;
+    const { email, newsletter_enabled, newsletter_time } = user;
     // Assume same object structure, nothing missing, for now
     const sql = 
       `INSERT INTO users 
@@ -55,7 +55,7 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
         (SELECT id FROM users WHERE email = "${email}"),
         "${email}",
         "${newsletter_enabled}",
-        "${newsletter_time}");`;
+        ${newsletter_time});`;
     return sql;
   }
 

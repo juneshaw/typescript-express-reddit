@@ -3,6 +3,6 @@ export interface IDomainUser {
   id: number;
   email: string;
   newsletter_enabled: boolean;
-  newsletter_time: string;
+  newsletter_time: number;
   subreddits: IDomainSubreddit[];
 } 

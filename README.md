@@ -64,3 +64,10 @@ Have fun! :blush:
 
 ## Dev Notes:
 - sqlite3 installation on new Catalina OS required: export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+- Database schema for users.db:
+```
+CREATE TABLE user_subreddits(id INTEGER, user_id INTEGER, subreddit_id INTEGER,  PRIMARY KEY(user_id, subreddit_id), FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION, FOREIGN KEY (subreddit_id) REFERENCES subreddits(id) ON DELETE CASCADE ON UPDATE NO ACTION);
+CREATE TABLE subreddits(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, url  string NOT NULL);
+CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, email string NOT NULL, newsletter_enabled boolean DEFAULT true, newsletter_time number DEFAULT 8, CONSTRAINT AK_email  UNIQUE(email));
+```

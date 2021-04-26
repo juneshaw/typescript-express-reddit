@@ -5,7 +5,7 @@ export interface IUserDataView {
   id: number;
   email: string;
   newsletterEnabled: boolean;
-  newsletterTime: string;
+  newsletterTime: number;
   subreddits: ISubredditView[];
 }
 export interface IUserView {
