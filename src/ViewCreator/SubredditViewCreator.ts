@@ -8,9 +8,10 @@ export class SubredditViewCreator implements IViewCreator<ISubredditView> {
   ) {}
 
   public Execute(): ISubredditView {
-    const { identifier } = this.subreddit;
+    const { id, url } = this.subreddit;
     const subredditView: ISubredditView = {
-      identifier
+      id,
+      url
     };
     return subredditView;
   }

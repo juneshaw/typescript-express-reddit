@@ -36,10 +36,11 @@ export class UpdateUsersAction implements IDomainAction<IRawUser, IUserView> {
   private buildSubredditViews = (subreddits: IDomainSubreddit[]): ISubredditView[] => {
     const subredditViews = new Array<ISubredditView>();
     subreddits.forEach(subreddit => {
-      const { identifier } = subreddit;
+      const { id, url } = subreddit;
       subredditViews.push(
         {
-          identifier 
+          id,
+          url
         }
       )
     })

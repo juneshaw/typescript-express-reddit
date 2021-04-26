@@ -1,3 +1,4 @@
 export interface ISubredditView {
-  identifier: string;
+  id: number;
+  url: string;
 }

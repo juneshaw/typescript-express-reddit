@@ -4,19 +4,17 @@ import express from 'express'
 import path from "path";
 import dotenv from "dotenv";
 const bodyParser = require('body-parser');
-// import * as routes from "./Routes";
-var routes = require('./routes/index');
-
+var routes = require('./routes');
 
 const app = express();
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Configure Express to use EJS
 app.set( "views", path.join( __dirname, "views" ) );
 app.set( "view engine", "ejs" );
 
-// Define a route handler
-// routes.register( app );
+//  Connect routes to application
 app.use('/', routes);
 
 // Intialize environment variables

@@ -1,35 +1,44 @@
-import * as express from "express";
+// import * as express from "express";
+import bodyParser from "body-parser";
 import { CreateUsersAction, GetUsersAction } from "../Actions";
 
-export const register = ( app: express.Application ) => {
+var express = require('express')
+var router = express.Router()
 
-    // home page
-    app.get( "/", ( req: any, res ) => {
-        res.render( "index" );
-    } );
+// middleware that is specific to this router
+router.use(function timeLog (req: any, res: any, next: any) {
+  console.log('Time: ', Date.now())
+  next()
+})
 
-    // users list
-    app.get( "/users", async ( req: any, res ) => {
-        const { status, data } = await(new GetUsersAction().Execute(req.query));
-        res
-        .status(status.code)
-        .send(status.code === 200 ? { users:data }: { message: status.message} );
-    } );
+// home page
+router.get( "/", ( req: any, res: any ) => {
+    res.render( "index" );
+} );
 
-    // users post
-    app.post( "/users", async ( req: any, res ) => {
-        console.log('req.body', req.body);
-        const { status, data } = await(new CreateUsersAction().Execute(req.query));
-        res
-        .status(status.code)
-        .send(status.code === 200 ? { users:data }: { message: status.message} );
-    } );
+// users list
+router.get( "/users", async ( req: any, res: any ) => {
+    const { status, data } = await(new GetUsersAction().Execute(req.query));
+    res
+    .status(status.code)
+    .send(status.code === 200 ? { users: data }: { message: status.message} );
+} );
 
-    // // users list
-    // app.put( "/users", async ( req: any, res ) => {
-    //     const { status, data } = await(new UpdateUsersAction().Execute(req.query));
-    //     res
-    //     .status(status.code)
-    //     .send(status.code === 200 ? { users:data }: { message: status.message} );
-    // } );
-};
+// users post
+router.post( "/users", async ( req: any, res: any ) => {
+    const { status, data } = await(new CreateUsersAction().Execute(req.body));
+    console.log('status', status);
+    console.log('data', data);
+    res
+    .status(status.code)
+    .send(status.code === 200 ? { user: data }: { message: status.message} );
+} );
+
+// // users list
+// app.put( "/users", async ( req: any, res ) => {
+//     const { status, data } = await(new UpdateUsersAction().Execute(req.query));
+//     res
+//     .status(status.code)
+//     .send(status.code === 200 ? { users:data }: { message: status.message} );
+// } );
+module.exports = router;

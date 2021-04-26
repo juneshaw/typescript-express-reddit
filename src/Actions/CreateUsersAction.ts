@@ -1,24 +1,13 @@
 const sqlite = require('sqlite3');
-import {
-  Accept,
-  Errors,
-  GET,
-  PUT,
-  DELETE,
-  Path,
-  PathParam,
-  POST,
-  ContextRequest,
-  ContextResponse,
-} from "typescript-rest";
 import { Database } from 'sqlite'
 import { IDomainAction } from "./IDomainAction";
-import { IDomainUser } from "../Domain";
+import { IDomainSubreddit, IDomainUser } from "../Domain";
 import { IRawUser } from "../Raw";
-import { IUserView, IUserDataView } from "../View";
-import { UserViewCreator } from "../ViewCreator";
+import { IResponseView, ISubredditView } from "../View";
+import { SubredditViewCreator, UserViewCreator } from "../ViewCreator";
+import { IRawSubreddit } from "../Raw/IRawSubreddit";
 
-export class CreateUsersAction implements IDomainAction<IRawUser, IUserView> {
+export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView> {
   constructor() {}
   private connectDb = (databaseName: string): Promise<Database> => {
     return new Promise(function(resolve, reject) {
@@ -44,53 +33,127 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IUserView> {
     });
   }
 
+  private selectSubreddit(db: Database, querySql: string): Promise<IDomainSubreddit[]> {
+    return new Promise((resolve, reject) => {
+        db.all(querySql, (err: any, subredditResults: IDomainSubreddit[]) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(subredditResults);
+          }
+        })
+    });
+  }
+
   private queryInsertUser = (user: IRawUser) => {
     const { email, newsletter_enabled, newsletter_time, subreddits } = user;
-    console.log('user', user);
     // Assume same object structure, nothing missing, for now
-    return(
-      `INSERT OR REPLACE INTO users 
+    const sql = 
+      `INSERT INTO users 
       (id, email, newsletter_enabled, newsletter_time)
       VALUES (
-        (SELECT ID FROM users WHERE email = ${email}),
-        ${email},
-        ${newsletter_enabled},
-        ${newsletter_time});`
-    )
+        (SELECT id FROM users WHERE email = "${email}"),
+        "${email}",
+        "${newsletter_enabled}",
+        "${newsletter_time}");`;
+    return sql;
   }
-  
-  public async Execute(params: IRawUser): Promise<IUserView> {
+
+  private queryInsertSubreddit = (subreddit: IRawSubreddit) => {
+    const { url } = subreddit;
+    // Assume same object structure, nothing missing, for now
+    const sql = 
+      `INSERT OR REPLACE INTO subreddits
+      (id, url)
+      VALUES (
+        (SELECT id FROM subreddits WHERE url = "${url}"),
+        "${url}");`;
+    return sql;
+  }
+
+  private queryInsertUserSubreddits = (userId: number, subredditId: number) => {
+    console.log('user.id', userId);
+    console.log('subreddit.id', subredditId);
+    // Assume same object structure, nothing missing, for now
+    const sql = 
+      `INSERT OR REPLACE INTO user_subreddits
+      (id, user_id, subreddit_id)
+      VALUES (
+        (SELECT id FROM user_subreddits WHERE user_id =  ${userId} AND subreddit_id = ${subredditId}),
+        ${userId},
+        ${subredditId});`;
+    return sql;
+  }
+
+  private querySelectUser = (user: IRawUser) => {
+    // Assume same object structure, nothing missing, for now
+    const sql = 
+    `SELECT * FROM users
+    WHERE users.email = "${user.email}";`;
+    return sql;
+  }
+
+  private querySelectSubreddit = (subredditUrl: string) => {
+    // Assume same object structure, nothing missing, for now
+    const sql = 
+    `SELECT subreddits.* FROM subreddits
+    WHERE subreddits.url = "${subredditUrl}";`
+    return sql;
+  }
+
+  public async Execute(params: IRawUser): Promise<IResponseView> {
     let db = await this.connectDb('./db/users.db');
-    let userView: IUserView;
+    let responseView: IResponseView;
 
-    // Validate inputs, if any
-    let errorMessages = new Array<string>();
+    try {
+      // Valid request params TBD
+      // Fix empty array subreddits
 
-    // Invalid request params
-    if (errorMessages.length !== 0) {
-      userView = {
+      // Insert user
+      let userView = null;
+      await this.select(db, this.queryInsertUser(params));
+      const result = await this.select(db, this.querySelectUser(params));
+      const user = result.length > 0
+      ? result[0]
+      : null;
+
+      if (user) {
+
+        // Insert subreddits
+        const subreddits = new Array<IDomainSubreddit>();
+        for (const paramSubreddit of params.subreddits) {
+          await this.select(db, this.queryInsertSubreddit(paramSubreddit));
+          const subreddit = await this.selectSubreddit(db, this.querySelectSubreddit(paramSubreddit.url));
+          if (subreddit.length > 0) {
+            subreddits.push(subreddit[0]);
+          }
+        };
+
+        // Insert user subreddit joins
+        const subredditViews = new Array<ISubredditView>();
+        for (const subreddit of subreddits) {
+          await this.select(db, this.queryInsertUserSubreddits(user.id, subreddit.id));
+          subredditViews.push(new SubredditViewCreator(subreddit).Execute());
+        };
+        user.subreddits = subredditViews;
+        userView = new UserViewCreator(user).Execute();
+      }
+
+      responseView = {
+        status: {
+          code: 200,
+          message: ""
+        },
+        data: userView
+      };
+    } catch {
+      responseView = {
         status: {
           code: 422,
-          message: errorMessages.join(", ")
+          message: "Failed to create user"
         }
-      }
-    } else {
-      // Valid request params TBD
-      let querySql = this.queryInsertUser(params);
-      const user = await this.select(db, querySql);
-      console.log('user: ', user);
-      // const users = await this.select(db, querySql);
-      const data = new Array<IUserDataView>();
-      // users.forEach(user => {
-      //   data.push(new UserViewCreator(user).Execute());
-      // });
-      userView = {
-        status: {
-          code: 200
-        },
-        data
       };
     }
-    return userView;
+    return responseView;
   }
 }
