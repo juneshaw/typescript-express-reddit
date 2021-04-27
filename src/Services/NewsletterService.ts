@@ -2,13 +2,12 @@ const sqlite = require('sqlite3');
 import { inspect } from "util";
 import fetch from "node-fetch";
 import { Database } from 'sqlite'
-// import { EmailService } from "./EmailService"
+import { EmailService } from "./EmailService"
 import { IDomainNewsletter, IDomainSubredditNewsletter, IDomainSubreddit, IDomainUser, IDomainUserNewsletter } from "../Domain";
-import { SubredditViewCreator } from "../ViewCreator";
 
 export class NewsletterService {
   constructor(
-    // private emailService = new EmailService()
+    private emailService = new EmailService()
   ) {
     this.generateNewsletter = this.generateNewsletter.bind(this)
   }
@@ -76,18 +75,17 @@ export class NewsletterService {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     for (const user of users) {
       const subreddits = await this.selectSubreddit(db, this.querySelectUserSubreddits(user.email));
-      const subredditDatas = new Array<IDomainNewsletter>();
+      const newsletters = new Array<IDomainNewsletter>();
       for (const subreddit of subreddits) {
         const data = await this.callRedditApi(subreddit);
-        subredditDatas.push(data);
+        newsletters.push(data);
       }
       const userSubredditNewsletter = {
         user,
-        subredditDatas
+        newsletters
       }
-      console.log(inspect(userSubredditNewsletter, {showHidden: false, depth: null}))
 
-      // this.emailService.emailNewsletter(user, userNewsletter);
+      this.emailService.sendNewsletter(userSubredditNewsletter);
     }
   }
 
