@@ -1,5 +1,5 @@
-import { Newsletter } from "./Newsletter";
+import { NewsletterService } from "./NewsletterService";
 
 export {
-  Newsletter
+  NewsletterService
 };

@@ -4,7 +4,7 @@ import express from 'express'
 import path from "path";
 import dotenv from "dotenv";
 const bodyParser = require('body-parser');
-import { Newsletter } from "./Services/Newsletter";
+import { NewsletterService } from "./Services/NewsletterService";
 
 var routes = require('./routes');
 
@@ -21,7 +21,6 @@ app.use('/', routes);
 
 // Intialize environment variables
 if (process.env.NODE_ENV !== 'production') {
-  // require('dotenv').config();
   dotenv.config();
 }
 
@@ -29,7 +28,7 @@ if (process.env.NODE_ENV !== 'production') {
  * Get port from environment and store in Express.
  */
 
-new Newsletter().initializeTimer();
+new NewsletterService().initializeTimer();
 
 const port = process.env.PORT || 3000;
 app.listen(port,() => console.log(`Hosting on ${port}`));
