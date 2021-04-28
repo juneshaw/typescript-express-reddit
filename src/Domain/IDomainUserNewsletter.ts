@@ -1,6 +1,6 @@
 import { IDomainUser } from "./IDomainUser";
-import { IDomainNewsletter } from "./IDomainNewsletter";
+import { IDomainArticle } from "./IDomainArticle";
 export interface IDomainUserNewsletter {
   user: IDomainUser;
-  newsletters: IDomainNewsletter[];
-} 
+  newsletters: IDomainArticle[];
+}

@@ -1,15 +1,14 @@
 const sqlite = require('sqlite3');
-import { inspect } from "util";
 import fetch from "node-fetch";
 import { Database } from 'sqlite'
 import { EmailService } from "./EmailService"
-import { IDomainNewsletter, IDomainSubredditNewsletter, IDomainSubreddit, IDomainUser, IDomainUserNewsletter } from "../Domain";
+import { IDomainArticle, IDomainPost, IDomainSubreddit, IDomainUser, IDomainUserNewsletter } from "../Domain";
 
 export class NewsletterService {
   constructor(
     private emailService = new EmailService()
   ) {
-    this.generateNewsletter = this.generateNewsletter.bind(this)
+    this.buildNewsletter = this.buildNewsletter.bind(this)
   }
 
   private connectDb = (databaseName: string): Promise<Database> => {
@@ -60,40 +59,40 @@ export class NewsletterService {
   private querySelectUsersByTime = (hour: number) => {
     const sql =
     `SELECT users.* FROM users
-    WHERE users.newsletter_time = ${hour};`
+    WHERE users.newsletter_time = ${hour}
+    AND users.newsletter_enabled = 1;`
     return sql;
   }
 
   public initializeTimer() {
-    setInterval(this.generateNewsletter, 6000);
+    setInterval(this.buildNewsletter, 6000);
   }
 
-  private async generateNewsletter() {
+  private async buildNewsletter() {
     let db = await this.connectDb('./db/users.db');
     let date = new Date();
     const users = await this.select(db, this.querySelectUsersByTime(date.getHours()));
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     for (const user of users) {
       const subreddits = await this.selectSubreddit(db, this.querySelectUserSubreddits(user.email));
-      const newsletters = new Array<IDomainNewsletter>();
+      const newsletters = new Array<IDomainArticle>();
       for (const subreddit of subreddits) {
-        const data = await this.callRedditApi(subreddit);
+        const data = await this.buildSubredditArticle(subreddit);
         newsletters.push(data);
       }
-      const userSubredditNewsletter = {
+      const userNewsletter = {
         user,
         newsletters
       }
-
-      this.emailService.sendNewsletter(userSubredditNewsletter);
+      this.emailService.sendNewsletter(userNewsletter);
     }
   }
 
-  private async callRedditApi(subreddit: IDomainSubreddit): Promise<IDomainNewsletter> {
+  private async buildSubredditArticle(subreddit: IDomainSubreddit): Promise<IDomainArticle> {
     const absoluteUrl = `${subreddit.url}${process.env.SUBREDDIT_PARAMS}`;
-    const response = await (fetch(absoluteUrl));
-    const json = await(response.json());
-    const subredditData = this.formatRedditData(json);
+    const response = await fetch(absoluteUrl);
+    const json = await response.json();
+    const subredditData = this.buildSubredditData(json);
     const newsletter = { 
       subredditUrl: subreddit.url,
       newsletterSubredditData: subredditData
@@ -101,17 +100,13 @@ export class NewsletterService {
     return newsletter;
   }
 
-  private formatRedditData(subredditData: any): IDomainSubredditNewsletter[] {
-    // const newsletterData = new Array<IDomainNewsletter>();
-    // subredditData.forEach(subredditDataElement => {
-        const newsletterSubredditData = new Array<IDomainSubredditNewsletter>();
-        const { data: { children, subreddit } } = subredditData;
-        for (const child of children) {
-          const { title, url, thumbnail, score } = child.data;
-          newsletterSubredditData.push({title, score, url, thumbnail});
-        }
-    // })
-      
+  private buildSubredditData(subredditData: any): IDomainPost[] {
+    const newsletterSubredditData = new Array<IDomainPost>();
+    const { data: { children } } = subredditData;
+    for (const child of children) {
+      const { title, url, thumbnail, score } = child.data;
+      newsletterSubredditData.push({title, score, url, thumbnail});
+    }
     return newsletterSubredditData;
   }
 }

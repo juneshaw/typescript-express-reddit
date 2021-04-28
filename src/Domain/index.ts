@@ -1,13 +1,13 @@
-import { IDomainNewsletter } from "./IDomainNewsletter";
+import { IDomainArticle } from "./IDomainArticle";
 import { IDomainSubreddit } from "./IDomainSubreddit";
-import { IDomainSubredditNewsletter } from "./IDomainSubredditNewsletter";
+import { IDomainPost } from "./IDomainPost";
 import { IDomainUser } from "./IDomainUser";
 import { IDomainUserNewsletter } from "./IDomainUserNewsletter";
 
 export {
-  IDomainNewsletter,
+  IDomainArticle,
   IDomainSubreddit,
-  IDomainSubredditNewsletter,
+  IDomainPost,
   IDomainUser,
   IDomainUserNewsletter,
 };

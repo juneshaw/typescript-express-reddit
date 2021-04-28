@@ -1,4 +1,4 @@
-export interface IDomainSubredditNewsletter {
+export interface IDomainPost {
   title: string,
   url: string,
   score: number,

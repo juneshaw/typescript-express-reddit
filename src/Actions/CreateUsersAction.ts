@@ -49,19 +49,19 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
     const { email, newsletter_enabled, newsletter_time } = user;
     // Assume same object structure, nothing missing, for now
     const sql = 
-      `INSERT INTO users 
-      (id, email, newsletter_enabled, newsletter_time)
+      `INSERT OR REPLACE INTO users
+        (id, email, newsletter_enabled, newsletter_time)
       VALUES (
         (SELECT id FROM users WHERE email = "${email}"),
         "${email}",
         "${newsletter_enabled}",
-        ${newsletter_time});`;
+        ${newsletter_time}
+      );`;
     return sql;
   }
 
   private queryInsertSubreddit = (subreddit: IRawSubreddit) => {
     const { url } = subreddit;
-    // Assume same object structure, nothing missing, for now
     const sql = 
       `INSERT OR REPLACE INTO subreddits
       (id, url)
@@ -74,7 +74,6 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
   private queryInsertUserSubreddits = (userId: number, subredditId: number) => {
     console.log('user.id', userId);
     console.log('subreddit.id', subredditId);
-    // Assume same object structure, nothing missing, for now
     const sql = 
       `INSERT OR REPLACE INTO user_subreddits
       (id, user_id, subreddit_id)
@@ -86,7 +85,6 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
   }
 
   private querySelectUser = (user: IRawUser) => {
-    // Assume same object structure, nothing missing, for now
     const sql = 
     `SELECT * FROM users
     WHERE users.email = "${user.email}";`;
@@ -94,7 +92,6 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
   }
 
   private querySelectSubreddit = (subredditUrl: string) => {
-    // Assume same object structure, nothing missing, for now
     const sql = 
     `SELECT subreddits.* FROM subreddits
     WHERE subreddits.url = "${subredditUrl}";`
@@ -106,9 +103,6 @@ export class CreateUsersAction implements IDomainAction<IRawUser, IResponseView>
     let responseView: IResponseView;
 
     try {
-      // Valid request params TBD
-      // Fix empty array subreddits
-
       // Insert user
       let userView = null;
       await this.select(db, this.queryInsertUser(params));
